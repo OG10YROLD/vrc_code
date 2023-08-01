@@ -58,7 +58,23 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
+	pros::Motor left_back_mtr(1, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_front_mtr(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_clockwise(5, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_anticlockwise(6, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
+	pros::Motor_Group left({left_back_mtr, left_front_mtr});
+	pros::Motor_Group right({right_back_mtr, right_front_mtr});
+	left.set_brake_modes(MOTOR_BRAKE_HOLD);
+	right.set_brake_modes(MOTOR_BRAKE_HOLD);
+
+	left.move_relative(3600, 200);
+	right.move_relative(3600, 200);
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -75,10 +91,15 @@ void autonomous() {}
  */
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor left_back_mtr(1);
-	pros::Motor left_front_mtr(2);
-	pros::Motor right_back_mtr(3);
-	pros::Motor right_front_mtr(4);
+	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
+	pros::Motor left_back_mtr(1, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_front_mtr(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_clockwise(5, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_anticlockwise(6, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
+	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
 
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
@@ -86,11 +107,18 @@ void opcontrol() {
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
 		int left = master.get_analog(ANALOG_LEFT_Y);
 		int right = master.get_analog(ANALOG_RIGHT_Y);
+		int r2_press = master.get_digital_new_press(DIGITAL_R2);
+		int up = master.get_digital(DIGITAL_UP);
 
 		left_back_mtr = left;
 		left_front_mtr = left;
 		right_back_mtr = right;
 		right_front_mtr = right;
+		
+		if ((r2_press || up) && catapult.is_stopped()) {
+			catapult.move_relative(840, 200);
+			catapult.brake();
+		}
 
 		pros::delay(20);
 	}
