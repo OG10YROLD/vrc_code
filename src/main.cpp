@@ -84,8 +84,8 @@ void opcontrol() { // Quick fix, change later
 			break;
 		}
 		if (left_back_mtr.is_stopped() && left_front_mtr.is_stopped() && right_back_mtr.is_stopped() && right_front_mtr.is_stopped()) {
-			left.move_relative(1800, 200);
-			right.move_relative(1800, 200);
+			left.move_relative(360, 200);
+			right.move_relative(360, 200);
 			break;
 		}
 		pros::delay(20);
