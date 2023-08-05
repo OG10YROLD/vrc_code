@@ -58,7 +58,8 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {
+void opcontrol() { // Quick fix, change later
+	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
 	pros::Motor left_back_mtr(7, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor left_front_mtr(6, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
@@ -75,6 +76,10 @@ void autonomous() {
 	left.move_relative(1800, 200);
 	right.move_relative(-1800, 200);
 	while (true) {
+		if (master.get_digital(DIGITAL_A)) {
+			left.brake();
+			right.brake();
+		}
 		if (left.is_stopped() && right.is_stopped()) {
 			left.move_relative(3600, 200);
 			right.move_relative(3600, 200);
@@ -97,7 +102,7 @@ void autonomous() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-void opcontrol() {
+void autonomous() { // Quick fix, change later
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
 	pros::Motor left_back_mtr(7, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
