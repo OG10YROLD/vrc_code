@@ -74,8 +74,10 @@ void opcontrol() { // Quick fix, change later
 	right.set_brake_modes(MOTOR_BRAKE_HOLD);
 
 
-	left.move_relative(1800, 200);
-	right.move_relative(-1800, 200);
+	left.move_relative(720, 200);
+	right.move_relative(-720, 200);
+	pros::delay(1000);
+
 	while (true) {
 		if (master.get_digital(DIGITAL_A)) {
 			left.brake();
@@ -83,8 +85,8 @@ void opcontrol() { // Quick fix, change later
 			break;
 		}
 		if (left_back_mtr.is_stopped() && left_front_mtr.is_stopped() && right_back_mtr.is_stopped() && right_front_mtr.is_stopped()) {
-			left.move_relative(3600, 200);
-			right.move_relative(3600, 200);
+			left.move_relative(1800, 200);
+			right.move_relative(1800, 200);
 			break;
 		}
 		pros::delay(20);
