@@ -81,7 +81,7 @@ void opcontrol() { // Quick fix, change later
 			left.brake();
 			right.brake();
 		}
-		if (left.is_stopped() && right.is_stopped()) {
+		if (left_back_mtr.is_stopped() && left_front_mtr.is_stopped() && right_back_mtr.is_stopped() && right_front_mtr.is_stopped()) {
 			left.move_relative(3600, 200);
 			right.move_relative(3600, 200);
 			break;
@@ -129,7 +129,7 @@ void autonomous() { // Quick fix, change later
 		right_back_mtr = right;
 		right_front_mtr = right;
 		
-		if ((r2_press || up) && catapult.is_stopped()) {
+		if ((r2_press || up) && catapult_clockwise.is_stopped() && catapult_anticlockwise.is_stopped()) {
 			catapult.move_relative(840, 200);
 			catapult.brake();
 		}
