@@ -90,6 +90,14 @@ void opcontrol() { // Quick fix, change later
 		}
 		pros::delay(20);
 	}
+	while (true) {
+		if (master.get_digital(DIGITAL_A)) {
+			left.brake();
+			right.brake();
+			break;
+		}
+		pros::delay(20);
+	}
 }
 
 /**
