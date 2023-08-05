@@ -73,7 +73,6 @@ void opcontrol() { // Quick fix, change later
 	left.set_brake_modes(MOTOR_BRAKE_HOLD);
 	right.set_brake_modes(MOTOR_BRAKE_HOLD);
 
-
 	left.move_relative(720, 200);
 	right.move_relative(-720, 200);
 	pros::delay(1000);
