@@ -72,8 +72,16 @@ void autonomous() {
 	left.set_brake_modes(MOTOR_BRAKE_HOLD);
 	right.set_brake_modes(MOTOR_BRAKE_HOLD);
 
-	left.move_relative(3600, 200);
-	right.move_relative(3600, 200);
+	left.move_relative(1800, 200);
+	right.move_relative(-1800, 200);
+	while (true) {
+		if (left.is_stopped() && right.is_stopped()) {
+			left.move_relative(3600, 200);
+			right.move_relative(3600, 200);
+			break;
+		}
+		pros::delay(20);
+	}
 }
 
 /**
