@@ -80,6 +80,7 @@ void opcontrol() { // Quick fix, change later
 		if (master.get_digital(DIGITAL_A)) {
 			left.brake();
 			right.brake();
+			break;
 		}
 		if (left_back_mtr.is_stopped() && left_front_mtr.is_stopped() && right_back_mtr.is_stopped() && right_front_mtr.is_stopped()) {
 			left.move_relative(3600, 200);
