@@ -60,8 +60,8 @@ void competition_initialize() {}
  */
 void autonomous() {
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(1, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_back_mtr(1, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor right_front_mtr(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_clockwise(5, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
@@ -100,8 +100,8 @@ void autonomous() {
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(1, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_back_mtr(1, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor right_front_mtr(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_clockwise(5, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
