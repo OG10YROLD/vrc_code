@@ -58,7 +58,7 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void opcontrol() { // Quick fix, change later
+void autonomous() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
 	pros::Motor left_back_mtr(7, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
@@ -113,17 +113,19 @@ void opcontrol() { // Quick fix, change later
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-void autonomous() { // Quick fix, change later
+void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
 	pros::Motor left_back_mtr(7, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor left_front_mtr(6, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor right_front_mtr(8, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_clockwise(12, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor intake(12, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_clockwise(13, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_anticlockwise(14, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
 	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
+	intake.set_brake_mode(MOTOR_BRAKE_BRAKE);
 
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
@@ -133,6 +135,9 @@ void autonomous() { // Quick fix, change later
 		int right = master.get_analog(ANALOG_RIGHT_Y);
 		int r2_press = master.get_digital_new_press(DIGITAL_R2);
 		int up = master.get_digital(DIGITAL_UP);
+		int r1 = master.get_digital(DIGITAL_R1);
+		int r2 = master.get_digital(DIGITAL_R2);
+
 
 		left_back_mtr = left;
 		left_front_mtr = left;
@@ -142,6 +147,16 @@ void autonomous() { // Quick fix, change later
 		if ((r2_press || up) && catapult_clockwise.is_stopped() && catapult_anticlockwise.is_stopped()) {
 			catapult.move_relative(840, 200);
 			catapult.brake();
+		}
+
+		if (r1) {
+			intake.move(127);
+		}
+		else if (r2) {
+			intake.move(-127);
+		}
+		else {
+			intake.brake();
 		}
 
 		pros::delay(20);
