@@ -146,8 +146,8 @@ void opcontrol() {
 		right_front_mtr = right;
 		
 		if ((l2_press || up)/* && catapult_clockwise.is_stopped() && catapult_anticlockwise.is_stopped()*/) {
-			//catapult.move_relative(180, 100);
-			catapult.move(63);
+			catapult.move_relative(180, 100);
+			//catapult.move(63);
 		}
 		
 //		if (catapult_clockwise.is_stopped() || catapult_anticlockwise.is_stopped()) {
