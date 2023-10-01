@@ -61,12 +61,13 @@ void competition_initialize() {}
 void autonomous() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(7, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(6, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_front_mtr(8, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_clockwise(12, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_anticlockwise(14, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_back_mtr(3, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(7, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_front_mtr(6, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor intake(14, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_clockwise(20, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_anticlockwise(19, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
 	pros::Motor_Group left({left_back_mtr, left_front_mtr});
 	pros::Motor_Group right({right_back_mtr, right_front_mtr});
@@ -116,15 +117,15 @@ void autonomous() {
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(7, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(6, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_front_mtr(8, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor intake(12, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_clockwise(13, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_anticlockwise(14, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_back_mtr(3, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(7, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_front_mtr(6, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor intake(14, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_clockwise(20, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_anticlockwise(19, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
-	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
+	//catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
 	intake.set_brake_mode(MOTOR_BRAKE_BRAKE);
 
 	while (true) {
@@ -133,7 +134,7 @@ void opcontrol() {
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
 		int left = master.get_analog(ANALOG_LEFT_Y);
 		int right = master.get_analog(ANALOG_RIGHT_Y);
-		int r2_press = master.get_digital_new_press(DIGITAL_R2);
+		int l2_press = master.get_digital_new_press(DIGITAL_L2);
 		int up = master.get_digital(DIGITAL_UP);
 		int r1 = master.get_digital(DIGITAL_R1);
 		int r2 = master.get_digital(DIGITAL_R2);
@@ -144,16 +145,20 @@ void opcontrol() {
 		right_back_mtr = right;
 		right_front_mtr = right;
 		
-		if ((r2_press || up) && catapult_clockwise.is_stopped() && catapult_anticlockwise.is_stopped()) {
-			catapult.move_relative(840, 200);
-			catapult.brake();
+		if ((l2_press || up)/* && catapult_clockwise.is_stopped() && catapult_anticlockwise.is_stopped()*/) {
+			//catapult.move_relative(180, 100);
+			catapult.move(63);
 		}
+		
+//		if (catapult_clockwise.is_stopped() || catapult_anticlockwise.is_stopped()) {
+//			catapult.brake();
+//		}
 
 		if (r1) {
-			intake.move(127);
+			intake.move(63);
 		}
 		else if (r2) {
-			intake.move(-127);
+			intake.move(-63);
 		}
 		else {
 			intake.brake();
