@@ -134,10 +134,11 @@ void opcontrol() {
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
 		int left = master.get_analog(ANALOG_LEFT_Y);
 		int right = master.get_analog(ANALOG_RIGHT_Y);
-		int l2_press = master.get_digital_new_press(DIGITAL_L2);
-		int up = master.get_digital(DIGITAL_UP);
+		int r2_press = master.get_digital_new_press(DIGITAL_R2);
 		int r1 = master.get_digital(DIGITAL_R1);
-		int r2 = master.get_digital(DIGITAL_R2);
+		int up = master.get_digital(DIGITAL_UP);
+		int l1 = master.get_digital(DIGITAL_L1);
+		int l2 = master.get_digital(DIGITAL_L2);
 
 
 		left_back_mtr = left;
@@ -145,19 +146,22 @@ void opcontrol() {
 		right_back_mtr = right;
 		right_front_mtr = right;
 		
-		if ((l2_press || up)/* && catapult_clockwise.is_stopped() && catapult_anticlockwise.is_stopped()*/) {
-			catapult.move_relative(180, 100);
+		if ((r2_press || up) && catapult_clockwise.is_stopped() && catapult_anticlockwise.is_stopped()) {
+			catapult.move_relative(180, 200);
 			//catapult.move(63);
+		}
+		if (r1) {
+			catapult.move(127);
 		}
 		
 //		if (catapult_clockwise.is_stopped() || catapult_anticlockwise.is_stopped()) {
 //			catapult.brake();
 //		}
 
-		if (r1) {
+		if (l1) {
 			intake.move(63);
 		}
-		else if (r2) {
+		else if (l2) {
 			intake.move(-63);
 		}
 		else {
