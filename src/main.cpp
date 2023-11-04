@@ -27,6 +27,8 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
+
+	pros::ADIAnalogIn limitSwitch('A');
 }
 
 /**
@@ -117,15 +119,17 @@ void autonomous() {
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(3, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(2, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(7, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_front_mtr(6, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor intake(14, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_clockwise(20, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_anticlockwise(19, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_back_mtr(2, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(1, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(10, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_front_mtr(8, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor intake(6, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_clockwise(11, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor catapult_anticlockwise(20, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
-	//catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
+	pros::ADIAnalogIn limitSwitch('A');
+	
+	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
 	intake.set_brake_mode(MOTOR_BRAKE_BRAKE);
 
 	while (true) {
@@ -140,18 +144,25 @@ void opcontrol() {
 		int l1 = master.get_digital(DIGITAL_L1);
 		int l2 = master.get_digital(DIGITAL_L2);
 
+		bool cataStationary = true;
 
 		left_back_mtr = left;
 		left_front_mtr = left;
 		right_back_mtr = right;
 		right_front_mtr = right;
-		
-		if ((r2_press || up) && catapult_clockwise.is_stopped() && catapult_anticlockwise.is_stopped()) {
-			catapult.move_relative(180, 200);
-			//catapult.move(63);
-		}
+
 		if (r1) {
 			catapult.move(127);
+			cataStationary = false;
+		}
+		else {
+			cataStationary = true;
+		}
+		if (limitSwitch.get_value() > 25 && cataStationary) {
+			catapult.move(63);
+		}
+		if (limitSwitch.get_value() < 15 && cataStationary) {
+			catapult.brake();
 		}
 		
 //		if (catapult_clockwise.is_stopped() || catapult_anticlockwise.is_stopped()) {
