@@ -128,9 +128,14 @@ void opcontrol() {
 	pros::Motor catapult_anticlockwise(20, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
 	pros::ADIAnalogIn limitSwitch('A');
-	
+
 	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
 	intake.set_brake_mode(MOTOR_BRAKE_BRAKE);
+
+	bool cataStationary = true;
+	bool settingPosition = false;
+	bool bToggle = false;
+	catapult.set_zero_position(0);
 
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
@@ -138,42 +143,55 @@ void opcontrol() {
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
 		int left = master.get_analog(ANALOG_LEFT_Y);
 		int right = master.get_analog(ANALOG_RIGHT_Y);
-		int r2_press = master.get_digital_new_press(DIGITAL_R2);
+		int r2 = master.get_digital(DIGITAL_R2);
 		int r1 = master.get_digital(DIGITAL_R1);
 		int up = master.get_digital(DIGITAL_UP);
 		int l1 = master.get_digital(DIGITAL_L1);
 		int l2 = master.get_digital(DIGITAL_L2);
+		int b = master.get_digital(DIGITAL_B);
 
-		bool cataStationary = true;
-
-		left_back_mtr = left;
-		left_front_mtr = left;
-		right_back_mtr = right;
-		right_front_mtr = right;
+		left_back_mtr = left >= 10 ? pow((left / 11.27), 2) : 0;
+		left_front_mtr = left >= 10 ? pow((left / 11.27), 2) : 0;
+		right_back_mtr = right >= 10 ? pow((right / 11.27), 2) : 0;
+		right_front_mtr = right >= 10 ? pow((right / 11.27), 2) : 0;
 
 		if (r1) {
 			catapult.move(127);
-			cataStationary = false;
-		}
-		else {
+			settingPosition = true;
 			cataStationary = true;
 		}
-		if (limitSwitch.get_value() > 25 && cataStationary) {
+		else if (settingPosition) {
+			catapult.brake();
+			catapult.set_zero_position(0);
+			settingPosition = false;
+		}
+		else if (r2 | bToggle) {
+			catapult.move(127);
+			cataStationary = false;
+		}
+		else if (!cataStationary) {
+			catapult.move_relative(180 - ((int)catapult.get_positions()[0] % 180), 127);
+			cataStationary = true;
+		}
+		if (b) {
+			bToggle = !bToggle;
+		}
+		/*if (limitSwitch.get_value() > 25 && cataStationary) {
 			catapult.move(63);
 		}
 		if (limitSwitch.get_value() < 15 && cataStationary) {
 			catapult.brake();
-		}
+		}*/
 		
 //		if (catapult_clockwise.is_stopped() || catapult_anticlockwise.is_stopped()) {
 //			catapult.brake();
 //		}
 
 		if (l1) {
-			intake.move(63);
+			intake.move(127);
 		}
 		else if (l2) {
-			intake.move(-63);
+			intake.move(-127);
 		}
 		else {
 			intake.brake();
