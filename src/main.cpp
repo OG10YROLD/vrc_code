@@ -127,7 +127,10 @@ void opcontrol() {
 	pros::Motor catapult_clockwise(11, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_anticlockwise(20, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
-	pros::ADIAnalogIn limitSwitch('A');
+	pros::Motor mexico_clockwise(19, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor mexico_anticlockwise(12, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor_Group mexico({mexico_clockwise, mexico_anticlockwise});
+	//pros::ADIAnalogIn limitSwitch('A');
 
 	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
 	intake.set_brake_mode(MOTOR_BRAKE_BRAKE);
@@ -136,6 +139,8 @@ void opcontrol() {
 	bool settingPosition = false;
 	bool bToggle = false;
 	catapult.set_zero_position(0);
+
+	bool mexicoOut = false;
 
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
@@ -149,6 +154,7 @@ void opcontrol() {
 		int l1 = master.get_digital(DIGITAL_L1);
 		int l2 = master.get_digital(DIGITAL_L2);
 		int b = master.get_digital(DIGITAL_B);
+		int x_press = master.get_digital_new_press(DIGITAL_X);
 
 		left_back_mtr = left >= 10 ? pow((left / 11.27), 2) : 0;
 		left_front_mtr = left >= 10 ? pow((left / 11.27), 2) : 0;
@@ -195,6 +201,16 @@ void opcontrol() {
 		}
 		else {
 			intake.brake();
+		}
+
+		if (x_press && !mexicoOut) {
+			mexico.move_absolute(90, 100);
+			mexicoOut = true;
+		}
+
+		if (x_press && mexicoOut) {
+			mexico.move_absolute(0, 100);
+			mexicoOut = false;
 		}
 
 		pros::delay(20);
