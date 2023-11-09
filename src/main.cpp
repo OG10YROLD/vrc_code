@@ -156,10 +156,10 @@ void opcontrol() {
 		int b = master.get_digital(DIGITAL_B);
 		int x_press = master.get_digital_new_press(DIGITAL_X);
 
-		left_back_mtr = left >= 10 ? pow((left / 11.27), 2) : 0;
-		left_front_mtr = left >= 10 ? pow((left / 11.27), 2) : 0;
-		right_back_mtr = right >= 10 ? pow((right / 11.27), 2) : 0;
-		right_front_mtr = right >= 10 ? pow((right / 11.27), 2) : 0;
+		left_back_mtr = left >= 10 ? pow((left / 11.27), 2) : (left <= -10 ? -pow((-left / 11.27), 2) : 0);
+		left_front_mtr = left >= 10 ? pow((left / 11.27), 2) : (left <= -10 ? -pow((-left / 11.27), 2) : 0);
+		right_back_mtr = right >= 10 ? pow((right / 11.27), 2) : (right <= -10 ? -pow((-right / 11.27), 2) : 0);
+		right_front_mtr = right >= 10 ? pow((right / 11.27), 2) : (right <= -10 ? -pow((-right / 11.27), 2) : 0);
 
 		if (r1) {
 			catapult.move(127);
