@@ -61,11 +61,11 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
+	/*pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
 	pros::Motor left_back_mtr(8, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(7, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(7, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor right_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor intake(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_clockwise(6, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
@@ -103,7 +103,7 @@ void autonomous() {
 			break;
 		}
 		pros::delay(20);
-	}
+	}*/
 }
 
 /**
@@ -124,8 +124,8 @@ void opcontrol() {
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
 	pros::Motor left_back_mtr(8, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor left_front_mtr(7, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_front_mtr(2, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor intake(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_clockwise(6, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_anticlockwise(5, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
@@ -163,13 +163,13 @@ void opcontrol() {
 		int b_press = master.get_digital_new_press(DIGITAL_B);
 		int x_press = master.get_digital_new_press(DIGITAL_X);
 
-		left_back_mtr = std::abs(left) >= 10 ? pow((left / 11.27), 2) : 0;
-		left_front_mtr = std::abs(left) >= 10 ? pow((left / 11.27), 2) : 0;
-		right_back_mtr = std::abs(right) >= 10 ? pow((right / 11.27), 2) : 0;
-		right_front_mtr = std::abs(right) >= 10 ? pow((right / 11.27), 2) : 0;
+		left_back_mtr = left >= 10 ? pow((left / 11.27), 2) : (left <= -10 ? -pow((-left / 11.27), 2) : 0);
+		left_front_mtr = left >= 10 ? pow((left / 11.27), 2) : (left <= -10 ? -pow((-left / 11.27), 2) : 0);
+		right_back_mtr = right >= 10 ? pow((right / 11.27), 2) : (right <= -10 ? -pow((-right / 11.27), 2) : 0);
+		right_front_mtr = right >= 10 ? pow((right / 11.27), 2) : (right <= -10 ? -pow((-right / 11.27), 2) : 0);
 
 		if (r1) {
-			catapult.move(127);
+			catapult.move_velocity(30);
 			settingPosition = true;
 			cataStationary = true;
 		}
@@ -179,7 +179,7 @@ void opcontrol() {
 			settingPosition = false;
 		}
 		else if (r2 || bToggle) {
-			catapult.move(((int)catapult.get_positions()[0] % 180) < 150 ? 127 : 31);
+			catapult.move_velocity(((int)catapult.get_positions()[0] % 180) < 150 ? 63 : 31);
 			cataStationary = false;
 		}
 		else if (!cataStationary) {
