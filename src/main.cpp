@@ -63,14 +63,17 @@ void competition_initialize() {}
 void autonomous() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(10, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(9, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_front_mtr(1, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_back_mtr(8, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(7, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor intake(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_clockwise(6, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_anticlockwise(5, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
 	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
+	pros::Motor mexico_clockwise(19, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor mexico_anticlockwise(12, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor_Group mexico({mexico_clockwise, mexico_anticlockwise});
 	pros::Motor_Group left({left_back_mtr, left_front_mtr});
 	pros::Motor_Group right({right_back_mtr, right_front_mtr});
 	left.set_brake_modes(MOTOR_BRAKE_HOLD);
@@ -119,10 +122,10 @@ void autonomous() {
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(10, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(9, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_front_mtr(1, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_back_mtr(8, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor left_front_mtr(7, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
+	pros::Motor right_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor intake(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_clockwise(6, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
 	pros::Motor catapult_anticlockwise(5, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
@@ -134,6 +137,10 @@ void opcontrol() {
 
 	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
 	intake.set_brake_mode(MOTOR_BRAKE_BRAKE);
+	left_back_mtr.set_brake_mode(MOTOR_BRAKE_COAST);
+	left_front_mtr.set_brake_mode(MOTOR_BRAKE_COAST);
+	right_back_mtr.set_brake_mode(MOTOR_BRAKE_COAST);
+	right_front_mtr.set_brake_mode(MOTOR_BRAKE_COAST);
 
 	bool cataStationary = true;
 	bool settingPosition = false;
@@ -153,13 +160,13 @@ void opcontrol() {
 		int up = master.get_digital(DIGITAL_UP);
 		int l1 = master.get_digital(DIGITAL_L1);
 		int l2 = master.get_digital(DIGITAL_L2);
-		int b = master.get_digital(DIGITAL_B);
+		int b_press = master.get_digital_new_press(DIGITAL_B);
 		int x_press = master.get_digital_new_press(DIGITAL_X);
 
-		left_back_mtr = left >= 10 ? pow((left / 11.27), 2) : (left <= -10 ? -pow((-left / 11.27), 2) : 0);
-		left_front_mtr = left >= 10 ? pow((left / 11.27), 2) : (left <= -10 ? -pow((-left / 11.27), 2) : 0);
-		right_back_mtr = right >= 10 ? pow((right / 11.27), 2) : (right <= -10 ? -pow((-right / 11.27), 2) : 0);
-		right_front_mtr = right >= 10 ? pow((right / 11.27), 2) : (right <= -10 ? -pow((-right / 11.27), 2) : 0);
+		left_back_mtr = std::abs(left) >= 10 ? pow((left / 11.27), 2) : 0;
+		left_front_mtr = std::abs(left) >= 10 ? pow((left / 11.27), 2) : 0;
+		right_back_mtr = std::abs(right) >= 10 ? pow((right / 11.27), 2) : 0;
+		right_front_mtr = std::abs(right) >= 10 ? pow((right / 11.27), 2) : 0;
 
 		if (r1) {
 			catapult.move(127);
@@ -171,17 +178,18 @@ void opcontrol() {
 			catapult.set_zero_position(0);
 			settingPosition = false;
 		}
-		else if (r2 | bToggle) {
-			catapult.move(127);
+		else if (r2 || bToggle) {
+			catapult.move(((int)catapult.get_positions()[0] % 180) < 150 ? 127 : 31);
 			cataStationary = false;
 		}
 		else if (!cataStationary) {
 			catapult.move_relative(180 - ((int)catapult.get_positions()[0] % 180), 127);
 			cataStationary = true;
 		}
-		if (b) {
+		if (b_press) {
 			bToggle = !bToggle;
 		}
+
 		/*if (limitSwitch.get_value() > 25 && cataStationary) {
 			catapult.move(63);
 		}
