@@ -27,8 +27,6 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
-
-	pros::ADIAnalogIn limitSwitch('A');
 }
 
 /**
@@ -61,22 +59,7 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	/*pros::Controller master(pros::E_CONTROLLER_MASTER);
-	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(8, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(7, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_front_mtr(2, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor intake(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_clockwise(6, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_anticlockwise(5, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
-	pros::Motor mexico_clockwise(19, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor mexico_anticlockwise(12, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor_Group mexico({mexico_clockwise, mexico_anticlockwise});
-	pros::Motor_Group left({left_back_mtr, left_front_mtr});
-	pros::Motor_Group right({right_back_mtr, right_front_mtr});
-	left.set_brake_modes(MOTOR_BRAKE_HOLD);
+	/*left.set_brake_modes(MOTOR_BRAKE_HOLD);
 	right.set_brake_modes(MOTOR_BRAKE_HOLD);
 
 	left.move_relative(720, 200);
@@ -120,41 +103,28 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	// (Port number, Cartridge, Clockwise=0 Anticlockwise=1, Unit to use with the motor)
-	pros::Motor left_back_mtr(8, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor left_front_mtr(7, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_back_mtr(3, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor right_front_mtr(2, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor intake(4, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_clockwise(6, MOTOR_GEAR_RED, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor catapult_anticlockwise(5, MOTOR_GEAR_RED, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor_Group catapult({catapult_clockwise, catapult_anticlockwise});
-	pros::Motor mexico_clockwise(19, MOTOR_GEAR_GREEN, 0, MOTOR_ENCODER_DEGREES);
-	pros::Motor mexico_anticlockwise(12, MOTOR_GEAR_GREEN, 1, MOTOR_ENCODER_DEGREES);
-	pros::Motor_Group mexico({mexico_clockwise, mexico_anticlockwise});
-	//pros::ADIAnalogIn limitSwitch('A');
 
 	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
 	intake.set_brake_mode(MOTOR_BRAKE_BRAKE);
-	left_back_mtr.set_brake_mode(MOTOR_BRAKE_COAST);
-	left_front_mtr.set_brake_mode(MOTOR_BRAKE_COAST);
-	right_back_mtr.set_brake_mode(MOTOR_BRAKE_COAST);
-	right_front_mtr.set_brake_mode(MOTOR_BRAKE_COAST);
+	left.set_brake_modes(MOTOR_BRAKE_COAST);
+	right.set_brake_modes(MOTOR_BRAKE_COAST);
+	hang.set_brake_mode(MOTOR_BRAKE_HOLD);
 
 	bool cataStationary = true;
 	bool settingPosition = false;
 	bool bToggle = false;
 	catapult.set_zero_position(0);
 
-	bool mexicoOut = false;
+	bool hangUp = false;
+
+	bool turning = false;
 
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int left = master.get_analog(ANALOG_LEFT_Y);
-		int right = master.get_analog(ANALOG_RIGHT_Y);
+		int left_stick = master.get_analog(ANALOG_LEFT_Y);
+		int right_stick = master.get_analog(ANALOG_RIGHT_Y);
 		int r2 = master.get_digital(DIGITAL_R2);
 		int r1 = master.get_digital(DIGITAL_R1);
 		int up = master.get_digital(DIGITAL_UP);
@@ -162,31 +132,45 @@ void opcontrol() {
 		int l2 = master.get_digital(DIGITAL_L2);
 		int b_press = master.get_digital_new_press(DIGITAL_B);
 		int x_press = master.get_digital_new_press(DIGITAL_X);
+		int a_press = master.get_digital_new_press(DIGITAL_A);
+		int y_press = master.get_digital_new_press(DIGITAL_Y);
 
-		left_back_mtr = left >= 10 ? pow((left / 11.27), 2) : (left <= -10 ? -pow((-left / 11.27), 2) : 0);
-		left_front_mtr = left >= 10 ? pow((left / 11.27), 2) : (left <= -10 ? -pow((-left / 11.27), 2) : 0);
-		right_back_mtr = right >= 10 ? pow((right / 11.27), 2) : (right <= -10 ? -pow((-right / 11.27), 2) : 0);
-		right_front_mtr = right >= 10 ? pow((right / 11.27), 2) : (right <= -10 ? -pow((-right / 11.27), 2) : 0);
+		// Checks whether sticks indicate turning or not
+		if (left_stick <= -10 && right_stick >= 10 || left_stick >= 10 && right_stick <= -10) {
+			turning = true;
+		}
+		else {
+			turning = false;
+			// Sets positions to 0 so we can check if they are not the same when we go forward or backward
+			left.set_zero_position(0);
+			right.set_zero_position(0);
+		}
 
-		if (r1) {
+		// Controls drivebase: (amount to drive) + (correction compared to other side)
+		left = (left_stick >= 10 ? pow((left_stick / (turning ? 13 : 11.27)), 2) : (left_stick <= -10 ? -pow((-left_stick / (turning ? 15 : 11.27)), 2) : 0)) + ((left_front_mtr.get_position() + left_back_mtr.get_position()) > (right_front_mtr.get_position() + right_back_mtr.get_position()) ? (left_stick >= 10 ? -10 : 10) : 0);
+		right = (right_stick >= 10 ? pow((right_stick / (turning ? 13 : 11.27)), 2) : (right_stick <= -10 ? -pow((-right_stick / (turning ? 15 : 11.27)), 2) : 0)) + ((left_front_mtr.get_position() + left_back_mtr.get_position()) < (right_front_mtr.get_position() + right_back_mtr.get_position()) ? (right_stick >= 10 ? -10 : 10) : 0);
+
+		// Code to control catapult. Only one of these cases can happen at a time, only if all preceding cases didn't happen. Very simple.
+		if (r1) { // Firstly, checks R1, which is used to set the catapult to any position so that it can be fired a fixed amount by other buttons.
 			catapult.move_velocity(30);
 			settingPosition = true;
 			cataStationary = true;
 		}
-		else if (settingPosition) {
+		else if (settingPosition) { // This may confuse you. Remember, this only runs if R1 isn't being pressed (see last case). Thus, this runs when you let go of R1
 			catapult.brake();
-			catapult.set_zero_position(0);
-			settingPosition = false;
+			catapult.set_zero_position(0); // Sets the new position to 0 so that it can complete a multiple of however many degrees a turn has
+			settingPosition = false; // Signifies that R1 is no longer being used.
 		}
-		else if (r2 || bToggle) {
+		else if (r2 || bToggle) { // Runs the catapult while the B toggle or R2 is active
 			catapult.move_velocity(((int)catapult.get_positions()[0] % 180) < 150 ? 63 : 31);
 			cataStationary = false;
 		}
-		else if (!cataStationary) {
+		else if (!cataStationary) { // Runs when both R2 is let go and B toggle is not active, in order to return the catapult to a multiple of the number of degrees in a turn.
 			catapult.move_relative(180 - ((int)catapult.get_positions()[0] % 180), 127);
 			cataStationary = true;
 		}
-		if (b_press) {
+
+		if (b_press) { // Toggles the B toggle when B is pressed
 			bToggle = !bToggle;
 		}
 
@@ -196,31 +180,36 @@ void opcontrol() {
 		if (limitSwitch.get_value() < 15 && cataStationary) {
 			catapult.brake();
 		}*/
-		
-//		if (catapult_clockwise.is_stopped() || catapult_anticlockwise.is_stopped()) {
-//			catapult.brake();
-//		}
 
-		if (l1) {
+		if (l1) { // Intake clockwise
 			intake.move(127);
 		}
-		else if (l2) {
+		else if (l2) { // Intake anticlockwise
 			intake.move(-127);
 		}
-		else {
+		else { // Finished using intake
 			intake.brake();
 		}
 
-		if (x_press && !mexicoOut) {
-			mexico.move_absolute(90, 100);
-			mexicoOut = true;
+		if (x_press && !hangUp) { // Toggles hang forward
+			hang.move_absolute(90, 100);
+			hangUp = true;
 		}
 
-		if (x_press && mexicoOut) {
-			mexico.move_absolute(0, 100);
-			mexicoOut = false;
+		if (x_press && hangUp) { // Toggles hang back
+			hang.move_absolute(0, 100);
+			hangUp = false;
 		}
 
-		pros::delay(20);
+		if (a_press) { // Toggles between coast and hold for catapult
+			catapult.set_brake_modes(catapult.get_brake_modes()[0] == MOTOR_BRAKE_HOLD ? MOTOR_BRAKE_COAST : MOTOR_BRAKE_HOLD);
+		}
+
+		if (y_press) { // Toggles between coast and hold for drivebase
+			left.set_brake_modes(left.get_brake_modes()[0] == MOTOR_BRAKE_HOLD ? MOTOR_BRAKE_COAST : MOTOR_BRAKE_HOLD);
+			right.set_brake_modes(right.get_brake_modes()[0] == MOTOR_BRAKE_HOLD ? MOTOR_BRAKE_COAST : MOTOR_BRAKE_HOLD);
+		}
+
+		pros::delay(20); // Delay between frames (The code works basically like a game loop)
 	}
 }
