@@ -27,6 +27,14 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
+	for (int i = 0; i < 25; i++) {
+		int left = master.get_digital(DIGITAL_LEFT);
+		if (left) {
+			driver = false;
+			break;
+		}
+		pros::delay(20);
+	}
 }
 
 /**
@@ -45,7 +53,60 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+
+}
+
+void drive(double newXCoord, double newYCoord, double newHeading) {
+	const double PI = 3.141592653589793;
+	const double DB_SEP = 12.4016; // inches between two sides of drivebase
+	const double GR = 2; // Gear ratio of drivebase is GR:1 (GR is input)
+	
+	double xDif = newXCoord - xCoord;
+	double yDif = newYCoord - yCoord;
+	double travelRotation;
+	if (xDif > 0 && yDif > 0) {
+		travelRotation = 90-(atan(yDif/xDif)*180/PI)-heading;
+	}
+	else if (xDif < 0 && yDif > 0) {
+		travelRotation = 270+(atan(yDif/-xDif)*180/PI)-heading;
+	}
+	else if (xDif > 0 && yDif < 0) {
+		travelRotation = 90+(atan(-yDif/xDif)*180/PI)-heading;
+	}
+	else if (xDif < 0 && yDif < 0) {
+		travelRotation = 270-(atan(-yDif/-xDif)*180/PI)-heading;
+	}
+	else {
+		travelRotation = 0;
+	}
+	
+	double travelRotationDistanceToTurn = (travelRotation*(PI/180))*DB_SEP; // contains amount for both sides to turn (half for each) to meet new heading, in inches
+	double travelDistance = sqrt(pow(xDif, 2) + pow(yDif, 2));
+	pros::lcd::set_text(1, std::to_string(xDif));
+	pros::lcd::set_text(2, std::to_string(yDif));
+	pros::lcd::set_text(3, std::to_string(travelRotation));
+	left.move_relative(360*((travelRotationDistanceToTurn/2)/(4*PI))*GR, 300);
+	right.move_relative(360*(-(travelRotationDistanceToTurn/2)/(4*PI))*GR, 300);
+	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 <= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 <= 10) {
+		pros::delay(10);
+	}
+	left.move_relative(360*((travelDistance*24)/(4*PI))*GR, 300); // 24 inches in a tile
+	right.move_relative(360*((travelDistance*24)/(4*PI))*GR, 300);
+	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 <= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 <= 10) {
+		pros::delay(10);
+	}
+	double finalRotation = newHeading - (heading + travelRotation);
+	double finalRotationDistanceToTurn = (finalRotation*(PI/180))*DB_SEP;
+	left.move_relative(360*((finalRotationDistanceToTurn/2)/(4*PI))*GR, 300);
+	right.move_relative(360*(-(finalRotationDistanceToTurn/2)/(4*PI))*GR, 300);
+	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 <= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 <= 10) {
+		pros::delay(10);
+	}
+	xCoord = newXCoord;
+	yCoord = newYCoord;
+	heading = newHeading;
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -59,34 +120,55 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	/*left.set_brake_modes(MOTOR_BRAKE_HOLD);
+	left.set_brake_modes(MOTOR_BRAKE_HOLD);
 	right.set_brake_modes(MOTOR_BRAKE_HOLD);
 
-	left.move_relative(720, 200);
-	right.move_relative(-720, 200);
-	pros::delay(1000);
+	xCoord = 1;
+	yCoord = 0;
+	heading = 0;
 
-	while (true) {
-		if (master.get_digital(DIGITAL_A)) {
-			left.brake();
-			right.brake();
-			break;
-		}
-		if (left_back_mtr.is_stopped() && left_front_mtr.is_stopped() && right_back_mtr.is_stopped() && right_front_mtr.is_stopped()) {
-			left.move_relative(360, 200);
-			right.move_relative(360, 200);
-			break;
-		}
-		pros::delay(20);
-	}
-	while (true) {
-		if (master.get_digital(DIGITAL_A)) {
-			left.brake();
-			right.brake();
-			break;
-		}
-		pros::delay(20);
-	}*/
+	drive(1.5, 1, 0);
+	drive(1.5, 1, 90);
+
+	// left.move(-100);
+	// right.move(-100);
+	// pros::delay(800);
+	// left.move(80);
+	// right.move(80);
+	// pros::delay(400);
+	// left.move(50);
+	// right.move(-50);
+	// pros::delay(500);
+	// left.move(100);
+	// right.move(100);
+	// pros::delay(1300);
+	// left.brake();
+	// right.brake();
+
+	// left.move_relative(720, 200);
+	// right.move_relative(-720, 200);
+	// pros::delay(1000);
+	// while (true) {
+	// 	if (master.get_digital(DIGITAL_A)) {
+	// 		left.brake();
+	// 		right.brake();
+	// 		break;
+	// 	}
+	// 	if (left_back_mtr.is_stopped() && left_front_mtr.is_stopped() && right_back_mtr.is_stopped() && right_front_mtr.is_stopped()) {
+	// 		left.move_relative(360, 200);
+	// 		right.move_relative(360, 200);
+	// 		break;
+	// 	}
+	// 	pros::delay(20);
+	// }
+	// while (true) {
+	// 	if (master.get_digital(DIGITAL_A)) {
+	// 		left.brake();
+	// 		right.brake();
+	// 		break;
+	// 	}
+	// 	pros::delay(20);
+	// }
 }
 
 /**
@@ -103,20 +185,29 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	if (driver) {
+		opcontroldriver();
+	}
+	else {
+		autonomous();
+	}
+}
+void opcontroldriver() {
 
 	catapult.set_brake_modes(MOTOR_BRAKE_HOLD);
 	intake.set_brake_mode(MOTOR_BRAKE_BRAKE);
 	left.set_brake_modes(MOTOR_BRAKE_COAST);
 	right.set_brake_modes(MOTOR_BRAKE_COAST);
 	hang.set_brake_mode(MOTOR_BRAKE_HOLD);
-
+	
 	bool cataStationary = true;
 	bool settingPosition = false;
 	bool bToggle = false;
 	catapult.set_zero_position(0);
 
 	bool hangUp = false;
-
+	hang.set_zero_position(0);
+	
 	bool turning = false;
 
 	while (true) {
@@ -147,8 +238,8 @@ void opcontrol() {
 		}
 
 		// Controls drivebase: (amount to drive) + (correction compared to other side)
-		left = (left_stick >= 10 ? pow((left_stick / (turning ? 13 : 11.27)), 2) : (left_stick <= -10 ? -pow((-left_stick / (turning ? 15 : 11.27)), 2) : 0)) + ((left_front_mtr.get_position() + left_back_mtr.get_position()) > (right_front_mtr.get_position() + right_back_mtr.get_position()) ? (left_stick >= 10 ? -10 : 10) : 0);
-		right = (right_stick >= 10 ? pow((right_stick / (turning ? 13 : 11.27)), 2) : (right_stick <= -10 ? -pow((-right_stick / (turning ? 15 : 11.27)), 2) : 0)) + ((left_front_mtr.get_position() + left_back_mtr.get_position()) < (right_front_mtr.get_position() + right_back_mtr.get_position()) ? (right_stick >= 10 ? -10 : 10) : 0);
+		left = (left_stick >= 10 ? pow((left_stick / (turning ? 14 : 11.27)), 2) : (left_stick <= -10 ? -pow((-left_stick / (turning ? 14 : 11.27)), 2) : 0)) + ((left_front_mtr.get_position() + left_back_mtr.get_position()) > (right_front_mtr.get_position() + right_back_mtr.get_position()) ? (left_stick >= 10 ? -10 : 10) : 0);
+		right = (right_stick >= 10 ? pow((right_stick / (turning ? 14 : 11.27 - 0.5)), 2) : (right_stick <= -10 ? -pow((-right_stick / (turning ? 14 : 11.27 - 0.5)), 2) : 0)) + ((left_front_mtr.get_position() + left_back_mtr.get_position()) < (right_front_mtr.get_position() + right_back_mtr.get_position()) ? (right_stick >= 10 ? -10 : 10) : 0);
 
 		// Code to control catapult. Only one of these cases can happen at a time, only if all preceding cases didn't happen. Very simple.
 		if (r1) { // Firstly, checks R1, which is used to set the catapult to any position so that it can be fired a fixed amount by other buttons.
@@ -161,8 +252,12 @@ void opcontrol() {
 			catapult.set_zero_position(0); // Sets the new position to 0 so that it can complete a multiple of however many degrees a turn has
 			settingPosition = false; // Signifies that R1 is no longer being used.
 		}
-		else if (r2 || bToggle) { // Runs the catapult while the B toggle or R2 is active
+		else if (r2) { // Runs the catapult while the R2 is active
 			catapult.move_velocity(((int)catapult.get_positions()[0] % 180) < 150 ? 63 : 31);
+			cataStationary = false;
+		}
+		else if (bToggle) { // Runs the catapult while the B toggle is active
+			catapult.move_velocity(((int)catapult.get_positions()[0] % 180) < 150 ? 45 : 30);
 			cataStationary = false;
 		}
 		else if (!cataStationary) { // Runs when both R2 is let go and B toggle is not active, in order to return the catapult to a multiple of the number of degrees in a turn.
@@ -182,21 +277,20 @@ void opcontrol() {
 		}*/
 
 		if (l1) { // Intake clockwise
-			intake.move(127);
+			intake.move(-127);
 		}
 		else if (l2) { // Intake anticlockwise
-			intake.move(-127);
+			intake.move(127);
 		}
 		else { // Finished using intake
 			intake.brake();
 		}
 
 		if (x_press && !hangUp) { // Toggles hang forward
-			hang.move_absolute(90, 100);
+			hang.move_absolute(120, 100);
 			hangUp = true;
 		}
-
-		if (x_press && hangUp) { // Toggles hang back
+		else if (x_press && hangUp) { // Toggles hang back
 			hang.move_absolute(0, 100);
 			hangUp = false;
 		}
