@@ -237,10 +237,18 @@ void opcontroldriver() {
 			right.set_zero_position(0);
 		}
 
-		// Controls drivebase: (amount to drive) + (correction compared to other side)
-		left = (left_stick >= 10 ? pow((left_stick / (turning ? 14 : 11.27)), 2) : (left_stick <= -10 ? -pow((-left_stick / (turning ? 14 : 11.27)), 2) : 0)) + ((left_front_mtr.get_position() + left_back_mtr.get_position()) > (right_front_mtr.get_position() + right_back_mtr.get_position()) ? (left_stick >= 10 ? -10 : 10) : 0);
-		right = (right_stick >= 10 ? pow((right_stick / (turning ? 14 : 11.27 - 0.5)), 2) : (right_stick <= -10 ? -pow((-right_stick / (turning ? 14 : 11.27 - 0.5)), 2) : 0)) + ((left_front_mtr.get_position() + left_back_mtr.get_position()) < (right_front_mtr.get_position() + right_back_mtr.get_position()) ? (right_stick >= 10 ? -10 : 10) : 0);
+		// Controls drivebase
+		if (turning) {
+			left = (left_stick >= 10 ? pow((left_stick / (14)), 2) : (left_stick <= -10 ? -pow((-left_stick / (14)), 2) : 0));
+			right = (right_stick >= 10 ? pow((right_stick / (14)), 2) : (right_stick <= -10 ? -pow((-right_stick / (14)), 2) : 0));
+		}
+		else {
+			double amount = left_stick > right_stick ? left_stick : right_stick;
+			left = (amount >= 10 ? pow((amount / (11.27)), 2) : (amount <= -10 ? -pow((-amount / (11.27)), 2) : 0));
+			right = (amount >= 10 ? pow((amount / (11.27)), 2) : (amount <= -10 ? -pow((-amount / (11.27)), 2) : 0));
 
+		}
+		
 		// Code to control catapult. Only one of these cases can happen at a time, only if all preceding cases didn't happen. Very simple.
 		if (r1) { // Firstly, checks R1, which is used to set the catapult to any position so that it can be fired a fixed amount by other buttons.
 			catapult.move_velocity(30);
@@ -287,7 +295,7 @@ void opcontroldriver() {
 		}
 
 		if (x_press && !hangUp) { // Toggles hang forward
-			hang.move_absolute(120, 100);
+			hang.move_absolute(90, 100);
 			hangUp = true;
 		}
 		else if (x_press && hangUp) { // Toggles hang back
