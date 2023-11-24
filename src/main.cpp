@@ -251,10 +251,9 @@ void opcontroldriver() {
 			right = (right_stick >= 10 ? pow((right_stick / (14)), 2) : (right_stick <= -10 ? -pow((-right_stick / (14)), 2) : 0));
 		}
 		else {
-			double amount = left_stick > right_stick ? left_stick : right_stick;
-			left = (amount >= 10 ? pow((amount / (11.27)), 2) : (amount <= -10 ? -pow((-amount / (11.27)), 2) : 0));
-			right = (amount >= 10 ? pow((amount / (11.27)), 2) : (amount <= -10 ? -pow((-amount / (11.27)), 2) : 0));
-
+			//double amount = left_stick > right_stick ? left_stick : right_stick;
+			left = (left_stick >= 10 ? pow((left_stick / (11.27)), 2) : (left_stick <= -10 ? -pow((-left_stick / (11.27)), 2) : 0));
+			right = (right_stick >= 10 ? pow((right_stick / (11.27)), 2) : (right_stick <= -10 ? -pow((-right_stick / (11.27)), 2) : 0));
 		}
 		
 		// Code to control catapult. Only one of these cases can happen at a time, only if all preceding cases didn't happen. Very simple.
