@@ -86,22 +86,28 @@ void drive(double newXCoord, double newYCoord, double newHeading) {
 	pros::lcd::set_text(1, std::to_string(xDif));
 	pros::lcd::set_text(2, std::to_string(yDif));
 	pros::lcd::set_text(3, std::to_string(travelRotation));
+	pros::delay(50);
 	left.move_relative(360*((travelRotationDistanceToTurn/2)/(4*PI))*GR, 300);
 	right.move_relative(360*(-(travelRotationDistanceToTurn/2)/(4*PI))*GR, 300);
-	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 <= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 <= 10) {
-		pros::delay(10);
+	pros::delay(50);
+	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 >= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 >= 10) {
+		pros::delay(50);
 	}
+	pros::delay(300);
 	left.move_relative(360*((travelDistance*24)/(4*PI))*GR, 300); // 24 inches in a tile
 	right.move_relative(360*((travelDistance*24)/(4*PI))*GR, 300);
-	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 <= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 <= 10) {
-		pros::delay(10);
+	pros::delay(50);
+	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 >= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 >= 10) {
+		pros::delay(50);
 	}
+	pros::delay(100);
 	double finalRotation = newHeading - (heading + travelRotation);
 	double finalRotationDistanceToTurn = (finalRotation*(PI/180))*DB_SEP;
 	left.move_relative(360*((finalRotationDistanceToTurn/2)/(4*PI))*GR, 300);
 	right.move_relative(360*(-(finalRotationDistanceToTurn/2)/(4*PI))*GR, 300);
-	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 <= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 <= 10) {
-		pros::delay(10);
+	pros::delay(50);
+	while (left.get_target_positions()[0] - left.get_positions()[0] + 5 >= 10 && right.get_target_positions()[0] - right.get_positions()[0] + 5 >= 10) {
+		pros::delay(50);
 	}
 	xCoord = newXCoord;
 	yCoord = newYCoord;
@@ -122,13 +128,15 @@ void drive(double newXCoord, double newYCoord, double newHeading) {
 void autonomous() {
 	left.set_brake_modes(MOTOR_BRAKE_HOLD);
 	right.set_brake_modes(MOTOR_BRAKE_HOLD);
+	left.set_zero_position(0);
+	right.set_zero_position(0);
 
 	xCoord = 1;
 	yCoord = 0;
 	heading = 0;
 
 	drive(1.5, 1, 0);
-	drive(1.5, 1, 90);
+	//drive(1.5, 1, 90);
 
 	// left.move(-100);
 	// right.move(-100);
