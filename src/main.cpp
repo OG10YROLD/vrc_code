@@ -131,19 +131,19 @@ void autonomous() {
 	left.set_zero_position(0);
 	right.set_zero_position(0);
 
-	xCoord = 1;
-	yCoord = 0;
-	heading = 0;
+	// xCoord = 1;
+	// yCoord = 0;
+	// heading = 0;
 
-	drive(1.5, 1, 0);
+	//drive(1.5, 1, 0);
 	//drive(1.5, 1, 90);
 
-	// left.move(-100);
-	// right.move(-100);
-	// pros::delay(800);
-	// left.move(80);
-	// right.move(80);
-	// pros::delay(400);
+	left.move(-100);
+	right.move(-100);
+	pros::delay(800);
+	left.move(80);
+	right.move(80);
+	pros::delay(400);
 	// left.move(50);
 	// right.move(-50);
 	// pros::delay(500);
