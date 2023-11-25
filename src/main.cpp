@@ -138,12 +138,22 @@ void autonomous() {
 	//drive(1.5, 1, 0);
 	//drive(1.5, 1, 90);
 
+	left.move(100);
+	right.move(100);
+	pros::delay(300);
 	left.move(-100);
 	right.move(-100);
-	pros::delay(800);
-	left.move(80);
-	right.move(80);
-	pros::delay(400);
+	pros::delay(250);
+	left.brake();
+	right.brake();
+	catapult.move_velocity(300);
+
+	// left.move(-100);
+	// right.move(-100);
+	// pros::delay(800);
+	// left.move(80);
+	// right.move(80);
+	// pros::delay(400);
 	// left.move(50);
 	// right.move(-50);
 	// pros::delay(500);
